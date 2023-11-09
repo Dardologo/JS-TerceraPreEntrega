@@ -11,13 +11,28 @@ class Libro{
 
 class UI{
     static mostrarLibros(){
-
+        const libros = Datos.traerLibros();
+        libros.forEach((libro) => UI.agregarLibrosLista(libro));
     }
     static agregarLibrosLista(libro){
+        const lista = document.querySelector('#lista-libros');
 
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+        <td>${libro.titulo}</td>
+        <td>${libro.autor}</td>
+        <td>${libro.genero}</td>
+        <td>${libro.codigo}</td>
+        <td><a href='#' class= "btn btn-danger btn-sm delete">X</a></td>
+        `;
+
+        lista.appendChild(fila);
     }
-    static eliminarLibro(){
-
+    static eliminarLibro(elemento){
+        //uso el delete para conectarlo con la X del td en la lista 
+        if(elemento.classList.contains('delete')){
+            elemento.parentElement.parentElement.remove();
+        }
     }
     static mostrarAlerta(mensaje, className){
         const div = document.createElement('div');
@@ -34,6 +49,10 @@ class UI{
 
 
     static limpiarCampos(){
+        document.querySelector('#titulo').value = '';
+        document.querySelector('#autor').value = '';
+        document.querySelector('#genero').value = '';
+        document.querySelector('#codigo').value = '';
 
     }
 }
@@ -54,15 +73,22 @@ class Datos {
         localStorage.setItem('libros', JSON.stringify(libros));
     }
     static removerLibro(codigo){
-
+        const libros = Datos.traerLibros();
+        libros.forEach((libro, index) => {
+            if(libro.codigo===codigo){
+                libros.splice(index, 1);
+            }
+        });
+        localStorage.setItem('libros', JSON.stringify(libros));
     }
 }
-
+// Carga de la pagina
+document.addEventListener('DOMContentLoaded', UI.mostrarLibros());
 //CONTROLAR EL EVENTO SUBMIT
 document.querySelector('#formulario-libro').addEventListener('submit', (e) =>{
 e.preventDefault();
 
-//OBTENGO LSO CALORES DE LOS CAMPOS
+//OBTENGO LSO VALORES DE LOS CAMPOS
 const titulo = document.querySelector('#titulo').value;
 const autor = document.querySelector('#autor').value;
 const genero = document.querySelector('#genero').value;
@@ -73,6 +99,15 @@ if( titulo ==="" || autor==="" || genero=== "" || codigo=== ""){
 }else {
     const libro = new Libro(titulo, autor, genero, codigo);
     Datos.agregarLibro(libro);
+    UI.agregarLibrosLista(libro);
+    UI.mostrarAlerta('Se agrego el libro correctamente', 'success');
+    UI.limpiarCampos();
 }
 
+});
+
+document.querySelector('#lista-libros').addEventListener('click', (e)=>{
+    UI.eliminarLibro(e.target);
+    Datos.removerLibro(e.target.parentElement.previousElementSibling.textContent);
+    UI.mostrarAlerta('Libro eliminado', 'success');
 });
